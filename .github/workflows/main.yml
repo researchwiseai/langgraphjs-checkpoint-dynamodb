@@ -90,6 +90,7 @@ jobs:
 
     integration-test:
         runs-on: ubuntu-latest
+        name: Integration Test Project
         needs: [lint, format, build, test]
         services:
             dynamodb:

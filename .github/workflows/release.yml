@@ -11,13 +11,37 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v2
+              uses: actions/checkout@v3
 
             - name: Set up Node.js
               uses: actions/setup-node@v2
               with:
                   node-version: '20'
                   registry-url: 'https://registry.npmjs.org/'
+
+            - name: Check version matches tag
+              shell: bash
+              run: |
+                  # Extract version from package.json
+                  PACKAGE_VERSION=$(node -p "require('./package.json').version")
+                  echo "Package version: $PACKAGE_VERSION"
+
+                  # Extract tag version from GITHUB_REF
+                  TAG=${GITHUB_REF#refs/tags/}
+                  echo "Git tag: $TAG"
+
+                  # Remove 'v' prefix
+                  TAG_VERSION=${TAG#v}
+
+                  echo "Tag version: $TAG_VERSION"
+
+                  # Compare versions
+                  if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
+                    echo "::error::Package version ($PACKAGE_VERSION) does not match tag version ($TAG_VERSION)"
+                    exit 1
+                  fi
+
+                  echo "✅ Package version matches tag version."
 
             - name: Install dependencies
               run: npm install
