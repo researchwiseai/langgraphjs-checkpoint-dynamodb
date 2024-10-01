@@ -96,8 +96,8 @@ jobs:
               uses: freeedcom/ai-codereviewer@v2.7.0
               with:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-                  OPENAI_API_MODEL: 'gpt-4'
+                  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_V2 }}
+                  OPENAI_API_MODEL: 'o1-mini'
                   exclude: '**/*.json, **/*.md'
 
     integration-test:
@@ -147,7 +147,7 @@ jobs:
             - name: Upload coverage artifact
               uses: actions/upload-artifact@v3
               with:
-                  name: unit-test-coverage
+                  name: integration-test-coverage
                   path: coverage/lcov.info
 
     coverage-report:
