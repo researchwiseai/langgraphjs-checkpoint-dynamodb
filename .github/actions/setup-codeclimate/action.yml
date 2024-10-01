@@ -1,0 +1,15 @@
+name: 'Setup CodeClimate'
+description: 'Downloads and sets up the CodeClimate Test Reporter'
+
+runs:
+    using: 'composite'
+    steps:
+        - name: Download CodeClimate Test Reporter
+          run: |
+              curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+              chmod +x ./cc-test-reporter
+          shell: bash
+
+        - name: Run CodeClimate Test Reporter before-build
+          run: ./cc-test-reporter before-build
+          shell: bash

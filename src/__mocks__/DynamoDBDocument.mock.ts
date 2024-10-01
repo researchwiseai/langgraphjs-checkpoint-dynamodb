@@ -41,8 +41,22 @@ export class MockDynamoDBDocument {
         const table = this.tables[TableName] || {};
         const items = Object.values(table);
 
-        // Simulate filtering based on KeyConditionExpression (simplified for example)
-        const filteredItems = items.filter(item => {
+        const filteredItems = this.filterItems(items, ExpressionAttributeValues);
+        const sortedItems = this.sortItems(filteredItems, ScanIndexForward);
+        const limitedItems = this.limitItems(sortedItems, Limit);
+
+        return { Items: limitedItems };
+    }
+
+    async batchWrite(params: { RequestItems: Record<string, any[]> }) {
+        for (const TableName in params.RequestItems) {
+            this.processTableRequests(TableName, params.RequestItems[TableName]);
+        }
+        return {};
+    }
+
+    private filterItems(items: any[], ExpressionAttributeValues: Record<string, any>): any[] {
+        return items.filter(item => {
             for (const key in ExpressionAttributeValues) {
                 const attributeName = key.replace(':', '');
                 if (item[attributeName] !== ExpressionAttributeValues[key]) {
@@ -51,42 +65,42 @@ export class MockDynamoDBDocument {
             }
             return true;
         });
-
-        // Sort items if ScanIndexForward is specified
-        if (ScanIndexForward !== undefined) {
-            filteredItems.sort((a, b) => {
-                const aKey = a.checkpoint_id;
-                const bKey = b.checkpoint_id;
-                if (ScanIndexForward) {
-                    return aKey.localeCompare(bKey);
-                } else {
-                    return bKey.localeCompare(aKey);
-                }
-            });
-        }
-
-        // Apply Limit if specified
-        const limitedItems = Limit ? filteredItems.slice(0, Limit) : filteredItems;
-
-        return { Items: limitedItems };
     }
 
-    async batchWrite(params: { RequestItems: Record<string, any[]> }) {
-        for (const TableName in params.RequestItems) {
-            const table = this.tables[TableName] || {};
-            for (const request of params.RequestItems[TableName]) {
-                if (request.PutRequest) {
-                    const Item = request.PutRequest.Item;
-                    this.sizeGuard(Item);
-                    const keyAttributes = this.getKeyAttributes(Item);
-                    const itemKey = JSON.stringify(keyAttributes);
-                    table[itemKey] = Item;
-                }
-                // Handle DeleteRequest if needed
+    private sortItems(items: any[], ScanIndexForward?: boolean): any[] {
+        if (ScanIndexForward === undefined) return items;
+
+        return items.sort((a, b) => {
+            const aKey = a.checkpoint_id;
+            const bKey = b.checkpoint_id;
+            if (ScanIndexForward) {
+                return aKey.localeCompare(bKey);
+            } else {
+                return bKey.localeCompare(aKey);
             }
-            this.tables[TableName] = table;
+        });
+    }
+
+    private limitItems(items: any[], Limit?: number): any[] {
+        return Limit ? items.slice(0, Limit) : items;
+    }
+
+    private processTableRequests(TableName: string, requests: any[]) {
+        const table = this.tables[TableName] || {};
+        for (const request of requests) {
+            if (request.PutRequest) {
+                this.processPutRequest(table, request.PutRequest.Item);
+            }
+            // Handle other requests if needed
         }
-        return {};
+        this.tables[TableName] = table;
+    }
+
+    private processPutRequest(table: Record<string, any>, Item: any) {
+        this.sizeGuard(Item);
+        const keyAttributes = this.getKeyAttributes(Item);
+        const itemKey = JSON.stringify(keyAttributes);
+        table[itemKey] = Item;
     }
 
     private calculateItemSize(item: any): number {

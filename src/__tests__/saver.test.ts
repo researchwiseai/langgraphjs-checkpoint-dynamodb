@@ -10,6 +10,7 @@ import { DynamoDBSaver } from '../saver';
 import { MockDynamoDBDocument } from '../__mocks__/DynamoDBDocument.mock';
 import { SerializerProtocol } from '@langchain/langgraph-checkpoint';
 import type { PendingWrite } from '@langchain/langgraph-checkpoint';
+import { expectErrorMessageToBeThrown } from './helpers/expectErrorMessageToBeThrown';
 
 // Mock Serializer
 class MockSerializer implements SerializerProtocol {
@@ -29,41 +30,32 @@ class MockSerializer implements SerializerProtocol {
     }
 }
 
-const checkpoint1: Checkpoint = {
-    v: 1,
-    id: uuid6(-1),
-    ts: '2024-04-19T17:19:07.952Z',
-    channel_values: {
-        someKey1: 'someValue1',
-    },
-    channel_versions: {
-        someKey2: 1,
-    },
-    versions_seen: {
-        someKey3: {
-            someKey4: 1,
+function createCheckpoint(num: number): Checkpoint {
+    return {
+        v: 1,
+        id: uuid6(num),
+        ts: `2024-04-${num + 18}T17:19:07.952Z`,
+        channel_values: {
+            someKey1: `someValue${num}`,
         },
-    },
-    pending_sends: [],
-};
+        channel_versions: {
+            someKey2: num,
+        },
+        versions_seen: {
+            someKey3: {
+                someKey4: num,
+            },
+        },
+        pending_sends: [],
+    };
+}
 
-const checkpoint2: Checkpoint = {
-    v: 1,
-    id: uuid6(1),
-    ts: '2024-04-20T17:19:07.952Z',
-    channel_values: {
-        someKey1: 'someValue2',
-    },
-    channel_versions: {
-        someKey2: 2,
-    },
-    versions_seen: {
-        someKey3: {
-            someKey4: 2,
-        },
-    },
-    pending_sends: [],
-};
+const checkpoint1 = createCheckpoint(1);
+const checkpoint2 = createCheckpoint(2);
+
+const config1 = {
+    configurable: { thread_id: '1' },
+} as const;
 
 describe('DynamoDBSaver', () => {
     describe('unit', () => {
@@ -89,21 +81,15 @@ describe('DynamoDBSaver', () => {
 
         it('should save and retrieve checkpoints correctly', async () => {
             // Get undefined checkpoint
-            const undefinedCheckpoint = await saver.getTuple({
-                configurable: { thread_id: '1' },
-            });
+            const undefinedCheckpoint = await saver.getTuple(config1);
             expect(undefinedCheckpoint).toBeUndefined();
 
             // Save first checkpoint
-            const runnableConfig = await saver.put(
-                { configurable: { thread_id: '1' } },
-                checkpoint1,
-                {
-                    source: 'update',
-                    step: -1,
-                    writes: null,
-                } as CheckpointMetadata
-            );
+            const runnableConfig = await saver.put(config1, checkpoint1, {
+                source: 'update',
+                step: -1,
+                writes: null,
+            } as CheckpointMetadata);
             expect(runnableConfig).toEqual({
                 configurable: {
                     thread_id: '1',
@@ -126,9 +112,7 @@ describe('DynamoDBSaver', () => {
             );
 
             // Get first checkpoint tuple
-            const firstCheckpointTuple = await saver.getTuple({
-                configurable: { thread_id: '1' },
-            });
+            const firstCheckpointTuple = await saver.getTuple(config1);
             expect(firstCheckpointTuple?.config).toEqual({
                 configurable: {
                     thread_id: '1',
@@ -140,36 +124,28 @@ describe('DynamoDBSaver', () => {
             expect(firstCheckpointTuple?.parentConfig).toBeUndefined();
             expect(firstCheckpointTuple?.pendingWrites).toEqual([['foo', 'bar', 'baz']]);
 
-            // Save second checkpoint with parent_checkpoint_id
-            await saver.put(
-                {
-                    configurable: {
-                        thread_id: '1',
-                        checkpoint_ns: '',
-                        checkpoint_id: '2024-04-18T17:19:07.952Z',
-                    },
-                },
-                checkpoint2,
-                { source: 'update', step: -1, writes: null } as CheckpointMetadata
-            );
-
-            // Verify that parentConfig is set and retrieved correctly for second checkpoint
-            const secondCheckpointTuple = await saver.getTuple({
-                configurable: { thread_id: '1' },
-            });
-            expect(secondCheckpointTuple?.parentConfig).toEqual({
+            const config1WithId = {
                 configurable: {
-                    thread_id: '1',
+                    thread_id: config1.configurable.thread_id,
                     checkpoint_ns: '',
                     checkpoint_id: '2024-04-18T17:19:07.952Z',
                 },
-            });
+            };
+
+            // Save second checkpoint with parent_checkpoint_id
+            await saver.put(config1WithId, checkpoint2, {
+                source: 'update',
+                step: -1,
+                writes: null,
+            } as CheckpointMetadata);
+
+            // Verify that parentConfig is set and retrieved correctly for second checkpoint
+            const secondCheckpointTuple = await saver.getTuple(config1);
+            expect(secondCheckpointTuple?.parentConfig).toEqual(config1WithId);
 
             // List checkpoints
             const checkpointTuples: CheckpointTuple[] = [];
-            for await (const checkpoint of saver.list({
-                configurable: { thread_id: '1' },
-            })) {
+            for await (const checkpoint of saver.list(config1)) {
                 checkpointTuples.push(checkpoint);
             }
             expect(checkpointTuples.length).toBe(2);
@@ -187,30 +163,21 @@ describe('DynamoDBSaver', () => {
                 },
             };
 
-            try {
-                await saver.getTuple(config);
-                throw new Error("Expected function to throw an error, but it didn't");
-            } catch (error) {
-                expect(error).toBeInstanceOf(Error);
-                expect((error as any).message).toBe('Invalid thread_id');
-            }
+            await expectErrorMessageToBeThrown(() => saver.getTuple(config), 'Invalid thread_id');
         });
 
         it('should throw an error when checkpoint_id is invalid in getTuple', async () => {
             const config = {
                 configurable: {
-                    thread_id: '1',
+                    thread_id: config1.configurable.thread_id,
                     checkpoint_id: 123, // Invalid type
                 },
             };
 
-            try {
-                await saver.getTuple(config);
-                throw new Error("Expected function to throw an error, but it didn't");
-            } catch (error) {
-                expect(error).toBeInstanceOf(Error);
-                expect((error as any).message).toBe('Invalid checkpoint_id');
-            }
+            await expectErrorMessageToBeThrown(
+                () => saver.getTuple(config),
+                'Invalid checkpoint_id'
+            );
         });
 
         it.skip('should throw an error when serializer returns unsupported type', async () => {
@@ -291,15 +258,10 @@ describe('DynamoDBSaver', () => {
             const checkpoint = { id: 'checkpoint1', data: largeData } as unknown as Checkpoint;
             const metadata = { source: 'update', step: -1, writes: null } as CheckpointMetadata;
 
-            try {
-                await saver.put(config, checkpoint, metadata);
-                throw new Error("Expected function to throw an error, but it didn't");
-            } catch (error) {
-                expect(error).toBeInstanceOf(Error);
-                expect((error as any).message).toBe(
-                    'Item size has exceeded the maximum allowed size'
-                );
-            }
+            expectErrorMessageToBeThrown(
+                () => saver.put(config, checkpoint, metadata),
+                'Item size has exceeded the maximum allowed size'
+            );
         });
 
         it('should handle special characters in keys and values', async () => {
