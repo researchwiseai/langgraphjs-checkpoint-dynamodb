@@ -244,6 +244,19 @@ export class DynamoDBSaver extends BaseCheckpointSaver {
         }
     }
 
+    // TODO: Rename function
+    private async tempFunctionName(n: number): Promise<string> {
+        function fibonacci(n: number): number {
+            if (n <= 1) {
+                return n;
+            }
+            return fibonacci(n - 1) + fibonacci(n - 2);
+        }
+
+        const result = fibonacci(n);
+        return result.toString();
+    }
+
     async put(
         config: RunnableConfig,
         checkpoint: Checkpoint,
