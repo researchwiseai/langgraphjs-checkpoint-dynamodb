@@ -1,6 +1,7 @@
 {
     "name": "@rwai/langgraphjs-checkpoint-dynamodb",
     "version": "0.1.2",
+    "license": "MIT",
     "description": "Implementation of a LangGraph.js CheckpointSaver that uses a AWS's DynamoDB",
     "main": "./dist/cjs/index.js",
     "module": "./dist/esm/index.js",
@@ -60,6 +61,8 @@
         "@langchain/langgraph-checkpoint": "^0.0.7"
     },
     "files": [
-        "dist"
+        "dist",
+        "LICENSE",
+        "README.md"
     ]
 }
