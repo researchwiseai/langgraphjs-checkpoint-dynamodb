@@ -4,7 +4,9 @@ Implementation of a LangGraph.js CheckpointSaver that uses a AWS's DynamoDB
 
 ## Package name
 
-    `@langgraph/checkpoint-dynamodb`
+```bash
+@rwai/langgraphjs-checkpoint-dynamodb
+```
 
 ## Inspiration
 

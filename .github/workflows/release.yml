@@ -5,11 +5,16 @@ on:
         tags:
             - 'v*.*.*'
 
-permissions: write-all
+permissions:
+    contents: write
+    id-token: write
+    actions: read
 
 jobs:
     release:
         runs-on: ubuntu-latest
+        outputs:
+            digests: ${{ steps.hash.outputs.digests }}
 
         steps:
             - name: Checkout code
@@ -48,6 +53,15 @@ jobs:
             - name: Build the project
               run: bun run build
 
+            - name: Generate subject for provenance
+              id: hash
+              run: |
+                  set -euo pipefail
+                  # List the artifacts the provenance will refer to.
+                  files=$(find dist -type f)
+                  # Generate the subjects (base64 encoded).
+                  echo "digests=$(sha256sum $files | base64 -w0)" >> "${GITHUB_OUTPUT}"
+
             - name: Publish to NPM
               run: npm publish --access public
               env:
@@ -69,3 +83,15 @@ jobs:
                   body: |
                       ## Changes
                       ${{ steps.changelog.outputs.changelog }}
+
+    provenance:
+        needs: [release]
+        permissions:
+            actions: read
+            id-token: write
+            contents: write
+        uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.4.0
+        with:
+            base64-subjects: '${{ needs.release.outputs.digests }}'
+            upload-assets: true
+            tag: '${{ github.ref }}'
