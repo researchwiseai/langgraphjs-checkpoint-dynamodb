@@ -18,8 +18,9 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/langgraphjs-checkpoint-dynamodb.git"
+        "url": "https://github.com/researchwiseai/langgraphjs-checkpoint-dynamodb.git"
     },
+    "homepage": "https://github.com/researchwiseai/langgraphjs-checkpoint-dynamodb",
     "scripts": {
         "build": "bun run build:esm && bun run build:cjs",
         "build:esm": "tsc --project tsconfig.esm.json",
