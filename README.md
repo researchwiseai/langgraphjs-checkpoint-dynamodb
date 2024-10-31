@@ -117,6 +117,7 @@ the checkpoints and writes tables. In this scenario the DynamoDB client will
 be instantiated with the default configuration, great for running on AWS Lambda.
 
 ```typescript
+import { DynamoDBSaver } from '@rwai/langgraphjs-checkpoint-dynamodb';
 ...
 const checkpointsTableName = 'YourCheckpointsTableName';
 const writesTableName = 'YourWritesTableName';
