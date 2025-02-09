@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, setSystemTime } from 'bun:test';
 import { DynamoDBSaver } from '../src/saver';
 import {
     DynamoDBClient,
@@ -7,6 +7,10 @@ import {
     DescribeTableCommand,
 } from '@aws-sdk/client-dynamodb';
 import { CheckpointMetadata, uuid6 } from '@langchain/langgraph-checkpoint';
+import { Annotation, END, START, StateGraph } from '@langchain/langgraph';
+import { AIMessage, BaseMessage, HumanMessage } from '@langchain/core/messages';
+
+setSystemTime(new Date('2022-01-01T03:00:00.000Z'));
 
 // Helper function to wait for table to become ACTIVE
 async function waitForTableActive(client: DynamoDBClient, tableName: string) {
@@ -44,8 +48,10 @@ describe('DynamoDBSaver', () => {
         writesTableName,
     });
 
-    describe('integration', () => {
+    describe('integration with DynamoDB', () => {
         beforeEach(async () => {
+            console.log('Creating tables');
+
             const client = new DynamoDBClient({
                 endpoint: process.env.AWS_DYNAMODB_ENDPOINT,
             });
@@ -85,9 +91,12 @@ describe('DynamoDBSaver', () => {
 
             await waitForTableActive(client, checkpointsTableName);
             await waitForTableActive(client, writesTableName);
+
+            console.log('Tables created');
         });
 
         afterEach(async () => {
+            console.log('Deleting tables');
             const client = new DynamoDBClient({
                 endpoint: process.env.AWS_DYNAMODB_ENDPOINT,
             });
@@ -106,6 +115,8 @@ describe('DynamoDBSaver', () => {
 
             await waitForTableDeleted(client, checkpointsTableName);
             await waitForTableDeleted(client, writesTableName);
+
+            console.log('Tables deleted');
         });
 
         it('should save and load checkpoints', async () => {
@@ -186,6 +197,7 @@ describe('DynamoDBSaver', () => {
                 source: 'update',
                 step: -1,
                 writes,
+                parents: {},
             } as CheckpointMetadata);
 
             const loadedWrites = await saver.getTuple({
@@ -194,6 +206,67 @@ describe('DynamoDBSaver', () => {
 
             expect(loadedWrites).not.toBeUndefined();
             expect(loadedWrites?.metadata?.writes).toEqual(writes);
+        });
+
+        describe('and a workflow', () => {
+            it('should save and load history', async () => {
+                const AgentState = Annotation.Root({
+                    messages: Annotation<BaseMessage[]>({
+                        reducer: (x, y) => x.concat(y),
+                        default: () => [],
+                    }),
+                });
+
+                const workflow = new StateGraph(AgentState)
+                    .addNode('NodeA', async () => {
+                        return {
+                            messages: [
+                                new AIMessage({
+                                    content: 'Hello from NodeA',
+                                }),
+                            ],
+                        };
+                    })
+                    .addNode('NodeB', async () => {
+                        return {
+                            messages: [
+                                new AIMessage({
+                                    content: 'Hello from NodeB',
+                                }),
+                            ],
+                        };
+                    });
+
+                workflow.addEdge(START, 'NodeA');
+                workflow.addEdge('NodeA', 'NodeB');
+                workflow.addEdge('NodeB', END);
+
+                const graph = workflow.compile({
+                    checkpointer: saver,
+                });
+
+                const config = { configurable: { thread_id: '1' } };
+
+                let loadedTuple = await saver.getTuple(config);
+                expect(loadedTuple).toBeUndefined();
+
+                const answer = await graph.invoke(
+                    {
+                        messages: [
+                            new HumanMessage({
+                                content: 'Hello from Human',
+                            }),
+                        ],
+                    },
+                    config
+                );
+
+                expect(answer).toMatchSnapshot();
+
+                loadedTuple = await saver.getTuple(config);
+
+                expect(loadedTuple).toMatchSnapshot();
+            });
         });
     });
 });

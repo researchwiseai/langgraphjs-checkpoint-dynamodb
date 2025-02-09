@@ -8,6 +8,32 @@ services:
             - "8000:8000"
         volumes:
             - dynamodb_data:/home/dynamodblocal/data
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    'if [ "$(curl -s -o /dev/null -I -w ''%{http_code}'' http://localhost:8000)" == "400" ]; then exit 0; else exit 1; fi',
+                ]
+            interval: 10s
+            timeout: 2s
+            retries: 5
+            start_period: 5s
+
+    integration-tests:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: integration-tests
+        volumes:
+            - ./tests/__snapshots__/:/usr/src/app/tests/__snapshots__
+        depends_on:
+            dynamodb:
+                condition: service_healthy
+        environment:
+            - AWS_ACCESS_KEY_ID=fakeMyKeyId
+            - AWS_SECRET_ACCESS_KEY=fakeSecretAccessKey
+            - AWS_REGION=local
+            - AWS_DYNAMODB_ENDPOINT=http://dynamodb:8000
 
 volumes:
     dynamodb_data:

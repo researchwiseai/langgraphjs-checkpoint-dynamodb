@@ -1,0 +1,213 @@
+// Bun Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DynamoDBSaver integration with DynamoDB and a workflow should save and load history 1`] = `
+{
+  "messages": [
+    HumanMessage HumanMessage {
+      "additional_kwargs": {},
+      "content": "Hello from Human",
+      "id": undefined,
+      "lc_kwargs": {
+        "additional_kwargs": {},
+        "content": "Hello from Human",
+        "response_metadata": {},
+      },
+      "lc_namespace": [
+        "langchain_core",
+        "messages",
+      ],
+      "lc_serializable": true,
+      "name": undefined,
+      "response_metadata": {},
+    },
+    AIMessage AIMessage {
+      "additional_kwargs": {},
+      "content": "Hello from NodeA",
+      "id": undefined,
+      "invalid_tool_calls": [],
+      "lc_kwargs": {
+        "additional_kwargs": {},
+        "content": "Hello from NodeA",
+        "invalid_tool_calls": [],
+        "response_metadata": {},
+        "tool_calls": [],
+      },
+      "lc_namespace": [
+        "langchain_core",
+        "messages",
+      ],
+      "lc_serializable": true,
+      "name": undefined,
+      "response_metadata": {},
+      "tool_calls": [],
+      "usage_metadata": undefined,
+    },
+    AIMessage AIMessage {
+      "additional_kwargs": {},
+      "content": "Hello from NodeB",
+      "id": undefined,
+      "invalid_tool_calls": [],
+      "lc_kwargs": {
+        "additional_kwargs": {},
+        "content": "Hello from NodeB",
+        "invalid_tool_calls": [],
+        "response_metadata": {},
+        "tool_calls": [],
+      },
+      "lc_namespace": [
+        "langchain_core",
+        "messages",
+      ],
+      "lc_serializable": true,
+      "name": undefined,
+      "response_metadata": {},
+      "tool_calls": [],
+      "usage_metadata": undefined,
+    },
+  ],
+}
+`;
+
+exports[`DynamoDBSaver integration with DynamoDB and a workflow should save and load history 2`] = `
+{
+  "checkpoint": {
+    "channel_values": {
+      "NodeB": "NodeB",
+      "messages": [
+        HumanMessage HumanMessage {
+          "additional_kwargs": {},
+          "content": "Hello from Human",
+          "id": undefined,
+          "lc_kwargs": {
+            "additional_kwargs": {},
+            "content": "Hello from Human",
+            "response_metadata": {},
+          },
+          "lc_namespace": [
+            "langchain_core",
+            "messages",
+          ],
+          "lc_serializable": true,
+          "name": undefined,
+          "response_metadata": {},
+        },
+        AIMessage AIMessage {
+          "additional_kwargs": {},
+          "content": "Hello from NodeA",
+          "id": undefined,
+          "invalid_tool_calls": [],
+          "lc_kwargs": {
+            "additional_kwargs": {},
+            "content": "Hello from NodeA",
+            "invalid_tool_calls": [],
+            "response_metadata": {},
+            "tool_calls": [],
+          },
+          "lc_namespace": [
+            "langchain_core",
+            "messages",
+          ],
+          "lc_serializable": true,
+          "name": undefined,
+          "response_metadata": {},
+          "tool_calls": [],
+          "usage_metadata": undefined,
+        },
+        AIMessage AIMessage {
+          "additional_kwargs": {},
+          "content": "Hello from NodeB",
+          "id": undefined,
+          "invalid_tool_calls": [],
+          "lc_kwargs": {
+            "additional_kwargs": {},
+            "content": "Hello from NodeB",
+            "invalid_tool_calls": [],
+            "response_metadata": {},
+            "tool_calls": [],
+          },
+          "lc_namespace": [
+            "langchain_core",
+            "messages",
+          ],
+          "lc_serializable": true,
+          "name": undefined,
+          "response_metadata": {},
+          "tool_calls": [],
+          "usage_metadata": undefined,
+        },
+      ],
+    },
+    "channel_versions": {
+      "NodeA": 4,
+      "NodeB": 4,
+      "__start__": 2,
+      "__start__:NodeA": 3,
+      "messages": 4,
+    },
+    "id": "1ec6aaee-88c3-6804-8002-708967be2a09",
+    "pending_sends": [],
+    "ts": "2022-01-01T03:00:00.000Z",
+    "v": 1,
+    "versions_seen": {
+      "NodeA": {
+        "__start__:NodeA": 2,
+      },
+      "NodeB": {
+        "NodeA": 3,
+      },
+      "__input__": {},
+      "__start__": {
+        "__start__": 1,
+      },
+    },
+  },
+  "config": {
+    "configurable": {
+      "checkpoint_id": "1ec6aaee-88c3-6804-8002-708967be2a09",
+      "checkpoint_ns": "",
+      "thread_id": "1",
+    },
+  },
+  "metadata": {
+    "parents": {},
+    "source": "loop",
+    "step": 2,
+    "writes": {
+      "NodeB": {
+        "messages": [
+          AIMessage AIMessage {
+            "additional_kwargs": {},
+            "content": "Hello from NodeB",
+            "id": undefined,
+            "invalid_tool_calls": [],
+            "lc_kwargs": {
+              "additional_kwargs": {},
+              "content": "Hello from NodeB",
+              "invalid_tool_calls": [],
+              "response_metadata": {},
+              "tool_calls": [],
+            },
+            "lc_namespace": [
+              "langchain_core",
+              "messages",
+            ],
+            "lc_serializable": true,
+            "name": undefined,
+            "response_metadata": {},
+            "tool_calls": [],
+            "usage_metadata": undefined,
+          },
+        ],
+      },
+    },
+  },
+  "parentConfig": {
+    "configurable": {
+      "checkpoint_id": "1ec6aaee-88c3-6803-8001-2107a262873a",
+      "checkpoint_ns": "",
+      "thread_id": "1",
+    },
+  },
+  "pendingWrites": [],
+}
+`;
