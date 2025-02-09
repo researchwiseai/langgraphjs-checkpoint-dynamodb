@@ -1,6 +1,6 @@
 {
     "name": "@rwai/langgraphjs-checkpoint-dynamodb",
-    "version": "0.1.5",
+    "version": "0.1.6",
     "license": "MIT",
     "description": "Implementation of a LangGraph.js CheckpointSaver that uses a AWS's DynamoDB",
     "main": "./dist/cjs/index.js",
@@ -21,6 +21,30 @@
         "url": "https://github.com/researchwiseai/langgraphjs-checkpoint-dynamodb"
     },
     "homepage": "https://github.com/researchwiseai/langgraphjs-checkpoint-dynamodb",
+    "author": {
+        "name": "Will Poynter",
+        "email": "will@researchwiseai.com"
+    },
+    "keywords": [
+        "langgraph",
+        "langchain",
+        "dynamodb",
+        "aws"
+    ],
+    "contributors": [
+        {
+            "name": "Will Poynter",
+            "email": "will@researchwiseai.com"
+        },
+        {
+            "name": "Jeff Laflamme",
+            "url": "https://www.npmjs.com/~jflaflamme"
+        },
+        {
+            "name": "Quentin Georget",
+            "url": "https://www.npmjs.com/~tinque"
+        }
+    ],
     "scripts": {
         "build": "bun run build:esm && bun run build:cjs",
         "build:esm": "tsc --project tsconfig.esm.json",
@@ -37,8 +61,9 @@
         "node": ">=20"
     },
     "devDependencies": {
-        "@eslint/js": "^9.13.0",
+        "@eslint/js": "^9.13.1",
         "@eslint/markdown": "^6.2.1",
+        "@langchain/langgraph": "^0.2.19",
         "@types/bun": "latest",
         "@types/ungap__structured-clone": "^1.2.0",
         "@typescript-eslint/eslint-plugin": "^8.12.2",
