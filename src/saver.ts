@@ -1,4 +1,7 @@
-import { DynamoDBClient, type DynamoDBClientConfig } from '@aws-sdk/client-dynamodb';
+import {
+    DynamoDBClient,
+    type DynamoDBClientConfig,
+} from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import type { RunnableConfig } from '@langchain/core/runnables';
 import {
@@ -98,7 +101,9 @@ export class DynamoDBSaver extends BaseCheckpointSaver {
         this.writesTableName = writesTableName;
     }
 
-    async getTuple(config: RunnableConfig): Promise<CheckpointTuple | undefined> {
+    async getTuple(
+        config: RunnableConfig
+    ): Promise<CheckpointTuple | undefined> {
         const getItem = async (configurable: ValidatedConfigurable) => {
             if (configurable.checkpoint_id != null) {
                 // Use get
@@ -134,12 +139,17 @@ export class DynamoDBSaver extends BaseCheckpointSaver {
             }
         };
 
-        const item = await getItem(this.validateConfigurable(config.configurable));
+        const item = await getItem(
+            this.validateConfigurable(config.configurable)
+        );
         if (!item) {
             return undefined;
         }
 
-        const checkpoint = (await this.serde.loadsTyped(item.type, item.checkpoint)) as Checkpoint;
+        const checkpoint = (await this.serde.loadsTyped(
+            item.type,
+            item.checkpoint
+        )) as Checkpoint;
         const metadata = (await this.serde.loadsTyped(
             item.type,
             item.metadata
@@ -151,7 +161,8 @@ export class DynamoDBSaver extends BaseCheckpointSaver {
             KeyConditionExpression:
                 'thread_id_checkpoint_id_checkpoint_ns = :thread_id_checkpoint_id_checkpoint_ns',
             ExpressionAttributeValues: {
-                ':thread_id_checkpoint_id_checkpoint_ns': Write.getPartitionKey(item),
+                ':thread_id_checkpoint_id_checkpoint_ns':
+                    Write.getPartitionKey(item),
             },
         });
 
@@ -159,7 +170,10 @@ export class DynamoDBSaver extends BaseCheckpointSaver {
         if (writesResult.Items) {
             for (const writeItem of writesResult.Items as DynamoDBWriteItem[]) {
                 const write = Write.fromDynamoDBItem(writeItem);
-                const value = await this.serde.loadsTyped(write.type, write.value);
+                const value = await this.serde.loadsTyped(
+                    write.type,
+                    write.value
+                );
                 pendingWrites.push([write.task_id, write.channel, value]);
             }
         }
@@ -200,8 +214,10 @@ export class DynamoDBSaver extends BaseCheckpointSaver {
         let keyConditionExpression = 'thread_id = :thread_id';
 
         if (before?.configurable?.checkpoint_id) {
-            keyConditionExpression += ' AND checkpoint_id < :before_checkpoint_id';
-            expressionAttributeValues[':before_checkpoint_id'] = before.configurable.checkpoint_id;
+            keyConditionExpression +=
+                ' AND checkpoint_id < :before_checkpoint_id';
+            expressionAttributeValues[':before_checkpoint_id'] =
+                before.configurable.checkpoint_id;
         }
 
         const result = await this.docClient.query({
@@ -258,7 +274,9 @@ export class DynamoDBSaver extends BaseCheckpointSaver {
         const [type2, serializedMetadata] = this.serde.dumpsTyped(metadata);
 
         if (type1 !== type2) {
-            throw new Error('Failed to serialize checkpoint and metadata to the same type.');
+            throw new Error(
+                'Failed to serialize checkpoint and metadata to the same type.'
+            );
         }
 
         const item: CheckpointItem = {
@@ -285,10 +303,13 @@ export class DynamoDBSaver extends BaseCheckpointSaver {
         };
     }
 
-    async putWrites(config: RunnableConfig, writes: PendingWrite[], taskId: string): Promise<void> {
-        const { thread_id, checkpoint_ns, checkpoint_id } = this.validateConfigurable(
-            config.configurable
-        );
+    async putWrites(
+        config: RunnableConfig,
+        writes: PendingWrite[],
+        taskId: string
+    ): Promise<void> {
+        const { thread_id, checkpoint_ns, checkpoint_id } =
+            this.validateConfigurable(config.configurable);
 
         if (checkpoint_id == null) {
             throw new Error('Missing checkpoint_id');

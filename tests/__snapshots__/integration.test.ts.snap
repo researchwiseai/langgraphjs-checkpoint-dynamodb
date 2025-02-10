@@ -144,7 +144,7 @@ exports[`DynamoDBSaver integration with DynamoDB and a workflow should save and 
       "__start__:NodeA": 3,
       "messages": 4,
     },
-    "id": "1ec6aaee-88c3-6804-8002-708967be2a09",
+    "id": Any<String>,
     "pending_sends": [],
     "ts": "2022-01-01T03:00:00.000Z",
     "v": 1,
@@ -163,7 +163,7 @@ exports[`DynamoDBSaver integration with DynamoDB and a workflow should save and 
   },
   "config": {
     "configurable": {
-      "checkpoint_id": "1ec6aaee-88c3-6804-8002-708967be2a09",
+      "checkpoint_id": Any<String>,
       "checkpoint_ns": "",
       "thread_id": "1",
     },
@@ -203,7 +203,7 @@ exports[`DynamoDBSaver integration with DynamoDB and a workflow should save and 
   },
   "parentConfig": {
     "configurable": {
-      "checkpoint_id": "1ec6aaee-88c3-6803-8001-2107a262873a",
+      "checkpoint_id": Any<String>,
       "checkpoint_ns": "",
       "thread_id": "1",
     },

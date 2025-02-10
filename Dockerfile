@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 
 COPY package.json bun.lockb ./
 
-RUN bun install
+RUN bun install --frozen-lockfile
 
 COPY src ./src
 COPY tests ./tests

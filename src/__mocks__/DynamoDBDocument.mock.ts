@@ -37,11 +37,19 @@ export class MockDynamoDBDocument {
         FilterExpression?: string;
         ConsistentRead?: boolean;
     }) {
-        const { TableName, ExpressionAttributeValues, Limit, ScanIndexForward } = params;
+        const {
+            TableName,
+            ExpressionAttributeValues,
+            Limit,
+            ScanIndexForward,
+        } = params;
         const table = this.tables[TableName] || {};
         const items = Object.values(table);
 
-        const filteredItems = this.filterItems(items, ExpressionAttributeValues);
+        const filteredItems = this.filterItems(
+            items,
+            ExpressionAttributeValues
+        );
         const sortedItems = this.sortItems(filteredItems, ScanIndexForward);
         const limitedItems = this.limitItems(sortedItems, Limit);
 
@@ -50,12 +58,18 @@ export class MockDynamoDBDocument {
 
     async batchWrite(params: { RequestItems: Record<string, any[]> }) {
         for (const TableName in params.RequestItems) {
-            this.processTableRequests(TableName, params.RequestItems[TableName]);
+            this.processTableRequests(
+                TableName,
+                params.RequestItems[TableName]
+            );
         }
         return {};
     }
 
-    private filterItems(items: any[], ExpressionAttributeValues: Record<string, any>): any[] {
+    private filterItems(
+        items: any[],
+        ExpressionAttributeValues: Record<string, any>
+    ): any[] {
         return items.filter(item => {
             for (const key in ExpressionAttributeValues) {
                 const attributeName = key.replace(':', '');
@@ -117,7 +131,8 @@ export class MockDynamoDBDocument {
     private getKeyAttributes(item: any): Record<string, any> {
         const keyAttributes: Record<string, any> = {};
         if (item.thread_id) keyAttributes.thread_id = item.thread_id;
-        if (item.checkpoint_id) keyAttributes.checkpoint_id = item.checkpoint_id;
+        if (item.checkpoint_id)
+            keyAttributes.checkpoint_id = item.checkpoint_id;
         return keyAttributes;
     }
 

@@ -22,7 +22,9 @@ class MockSerializer implements SerializerProtocol {
         switch (type) {
             case 'json':
                 return JSON.parse(
-                    typeof value === 'string' ? value : new TextDecoder().decode(value)
+                    typeof value === 'string'
+                        ? value
+                        : new TextDecoder().decode(value)
                 );
             default:
                 throw new Error(`Unsupported type: ${type}`);
@@ -122,7 +124,9 @@ describe('DynamoDBSaver', () => {
             });
             expect(firstCheckpointTuple?.checkpoint).toEqual(checkpoint1);
             expect(firstCheckpointTuple?.parentConfig).toBeUndefined();
-            expect(firstCheckpointTuple?.pendingWrites).toEqual([['foo', 'bar', 'baz']]);
+            expect(firstCheckpointTuple?.pendingWrites).toEqual([
+                ['foo', 'bar', 'baz'],
+            ]);
 
             const config1WithId = {
                 configurable: {
@@ -152,8 +156,12 @@ describe('DynamoDBSaver', () => {
 
             const checkpointTuple1 = checkpointTuples[0];
             const checkpointTuple2 = checkpointTuples[1];
-            expect(checkpointTuple1.checkpoint.ts).toBe('2024-04-20T17:19:07.952Z');
-            expect(checkpointTuple2.checkpoint.ts).toBe('2024-04-19T17:19:07.952Z');
+            expect(checkpointTuple1.checkpoint.ts).toBe(
+                '2024-04-20T17:19:07.952Z'
+            );
+            expect(checkpointTuple2.checkpoint.ts).toBe(
+                '2024-04-19T17:19:07.952Z'
+            );
         });
 
         it('should throw an error when thread_id is missing in getTuple', async () => {
@@ -163,7 +171,10 @@ describe('DynamoDBSaver', () => {
                 },
             };
 
-            await expectErrorMessageToBeThrown(() => saver.getTuple(config), 'Invalid thread_id');
+            await expectErrorMessageToBeThrown(
+                () => saver.getTuple(config),
+                'Invalid thread_id'
+            );
         });
 
         it('should throw an error when checkpoint_id is invalid in getTuple', async () => {
@@ -255,8 +266,15 @@ describe('DynamoDBSaver', () => {
                 },
             };
 
-            const checkpoint = { id: 'checkpoint1', data: largeData } as unknown as Checkpoint;
-            const metadata = { source: 'update', step: -1, writes: null } as CheckpointMetadata;
+            const checkpoint = {
+                id: 'checkpoint1',
+                data: largeData,
+            } as unknown as Checkpoint;
+            const metadata = {
+                source: 'update',
+                step: -1,
+                writes: null,
+            } as CheckpointMetadata;
 
             expectErrorMessageToBeThrown(
                 () => saver.put(config, checkpoint, metadata),
@@ -275,7 +293,11 @@ describe('DynamoDBSaver', () => {
                 id: 'checkpoint-特殊字符',
                 data: 'data with special characters: 特殊字符',
             } as unknown as Checkpoint;
-            const metadata = { source: 'update', step: -1, writes: null } as CheckpointMetadata;
+            const metadata = {
+                source: 'update',
+                step: -1,
+                writes: null,
+            } as CheckpointMetadata;
 
             await saver.put(config, checkpoint, metadata);
 

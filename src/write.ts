@@ -135,7 +135,9 @@ export class Write {
         checkpoint_id: string;
         checkpoint_ns: string;
     }): string {
-        return [thread_id, checkpoint_id, checkpoint_ns].join(Write.separator());
+        return [thread_id, checkpoint_id, checkpoint_ns].join(
+            Write.separator()
+        );
     }
 
     static separator() {

@@ -265,7 +265,23 @@ describe('DynamoDBSaver', () => {
 
                 loadedTuple = await saver.getTuple(config);
 
-                expect(loadedTuple).toMatchSnapshot();
+                loadedTuple?.parentConfig;
+
+                expect(loadedTuple).toMatchSnapshot({
+                    checkpoint: {
+                        id: expect.any(String),
+                    },
+                    config: {
+                        configurable: {
+                            checkpoint_id: expect.any(String),
+                        },
+                    },
+                    parentConfig: {
+                        configurable: {
+                            checkpoint_id: expect.any(String),
+                        },
+                    },
+                });
             });
         });
     });
